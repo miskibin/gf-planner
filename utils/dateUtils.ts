@@ -6,29 +6,31 @@ export const getDaysUntil = (dateString: string): number => {
   return diffDays;
 };
 
-export const getDateBadge = (dateString: string): { text: string; color: string } | null => {
+export const getDateBadge = (
+  dateString: string
+): { text: string; color: string } | null => {
   const daysUntil = getDaysUntil(dateString);
-  
+
   if (daysUntil === 0) {
-    return { text: 'Today', color: '#FF3B30' };
+    return { text: "Today", color: "#FF3B30" };
   } else if (daysUntil === 1) {
-    return { text: 'Tomorrow', color: '#FF9500' };
+    return { text: "Tomorrow", color: "#FF9500" };
   } else if (daysUntil > 1 && daysUntil <= 7) {
-    return { text: `In ${daysUntil} days`, color: '#007AFF' };
+    return { text: `In ${daysUntil} days`, color: "#007AFF" };
   } else if (daysUntil < 0 && daysUntil >= -7) {
-    return { text: `${Math.abs(daysUntil)} days ago`, color: '#999' };
+    return { text: `${Math.abs(daysUntil)} days ago`, color: "#999" };
   } else if (daysUntil < -7) {
-    return { text: 'Past', color: '#999' };
+    return { text: "Past", color: "#999" };
   }
-  
+
   return null;
 };
 
 export const formatDateForDisplay = (dateString: string): string => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { 
-    weekday: 'short', 
-    month: 'short', 
-    day: 'numeric' 
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
   });
 };

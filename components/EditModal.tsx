@@ -1,37 +1,45 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from "react";
 import {
+  Alert,
+  BackHandler,
   Modal,
-  View,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  Alert,
-  BackHandler,
-} from 'react-native';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import { Item } from '../types';
+  View,
+} from "react-native";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { Item } from "../types";
 
 interface EditModalProps {
   visible: boolean;
   onClose: () => void;
-  onSave: (item: Omit<Item, 'id' | 'createdAt'>) => void;
+  onSave: (item: Omit<Item, "id" | "createdAt">) => void;
   item?: Item;
-  type: 'events' | 'wishlist' | 'likes';
+  type: "events" | "wishlist" | "likes";
 }
 
-export default function EditModal({ visible, onClose, onSave, item, type }: EditModalProps) {
-  const [title, setTitle] = useState(item?.title || '');
-  const [date, setDate] = useState(item?.date || '');
-  const [priority, setPriority] = useState<'high' | 'medium' | 'low'>(item?.priority || 'medium');
-  const [description, setDescription] = useState(item?.description || '');
+export default function EditModal({
+  visible,
+  onClose,
+  onSave,
+  item,
+  type,
+}: EditModalProps) {
+  const [title, setTitle] = useState(item?.title || "");
+  const [date, setDate] = useState(item?.date || "");
+  const [priority, setPriority] = useState<"high" | "medium" | "low">(
+    item?.priority || "medium"
+  );
+  const [description, setDescription] = useState(item?.description || "");
   const [datePickerVisible, setDatePickerVisible] = useState(false);
 
   const handleClose = useCallback(() => {
-    setTitle(item?.title || '');
-    setDate(item?.date || '');
-    setPriority(item?.priority || 'medium');
-    setDescription(item?.description || '');
+    setTitle(item?.title || "");
+    setDate(item?.date || "");
+    setPriority(item?.priority || "medium");
+    setDescription(item?.description || "");
     onClose();
   }, [item?.title, item?.date, item?.priority, item?.description, onClose]);
 
@@ -43,7 +51,10 @@ export default function EditModal({ visible, onClose, onSave, item, type }: Edit
         return true; // Prevent default behavior
       };
 
-      const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+      const backHandler = BackHandler.addEventListener(
+        "hardwareBackPress",
+        backAction
+      );
 
       return () => backHandler.remove();
     }
@@ -51,20 +62,20 @@ export default function EditModal({ visible, onClose, onSave, item, type }: Edit
 
   const handleSave = () => {
     if (!title.trim()) {
-      Alert.alert('Error', 'Title is required');
+      Alert.alert("Error", "Title is required");
       return;
     }
 
-    const itemData: Omit<Item, 'id' | 'createdAt'> = {
+    const itemData: Omit<Item, "id" | "createdAt"> = {
       title: title.trim(),
       description: description.trim() || undefined,
     };
 
-    if (type === 'events') {
+    if (type === "events") {
       itemData.date = date.trim() || undefined;
     }
 
-    if (type === 'wishlist') {
+    if (type === "wishlist") {
       itemData.priority = priority;
     }
 
@@ -73,7 +84,7 @@ export default function EditModal({ visible, onClose, onSave, item, type }: Edit
   };
 
   const handleDateConfirm = (selectedDate: Date) => {
-    setDate(selectedDate.toISOString().split('T')[0]);
+    setDate(selectedDate.toISOString().split("T")[0]);
     setDatePickerVisible(false);
   };
 
@@ -90,15 +101,15 @@ export default function EditModal({ visible, onClose, onSave, item, type }: Edit
             autoFocus
           />
 
-          {type === 'events' && (
+          {type === "events" && (
             <>
               <Text style={styles.label}>Date</Text>
               <TouchableOpacity
                 style={styles.dateInput}
                 onPress={() => setDatePickerVisible(true)}
               >
-                <Text style={{ color: date ? '#222' : '#666', fontSize: 16 }}>
-                  {date ? date : 'Pick a date'}
+                <Text style={{ color: date ? "#222" : "#666", fontSize: 16 }}>
+                  {date ? date : "Pick a date"}
                 </Text>
               </TouchableOpacity>
               <DateTimePickerModal
@@ -110,23 +121,25 @@ export default function EditModal({ visible, onClose, onSave, item, type }: Edit
             </>
           )}
 
-          {type === 'wishlist' && (
+          {type === "wishlist" && (
             <>
               <Text style={styles.label}>Priority</Text>
               <View style={styles.priorityContainer}>
-                {(['high', 'medium', 'low'] as const).map((p) => (
+                {(["high", "medium", "low"] as const).map((p) => (
                   <TouchableOpacity
                     key={p}
                     style={[
                       styles.priorityButton,
-                      priority === p && styles.priorityButtonActive
+                      priority === p && styles.priorityButtonActive,
                     ]}
                     onPress={() => setPriority(p)}
                   >
-                    <Text style={[
-                      styles.priorityText,
-                      priority === p && styles.priorityTextActive
-                    ]}>
+                    <Text
+                      style={[
+                        styles.priorityText,
+                        priority === p && styles.priorityTextActive,
+                      ]}
+                    >
                       {p}
                     </Text>
                   </TouchableOpacity>
@@ -162,18 +175,18 @@ export default function EditModal({ visible, onClose, onSave, item, type }: Edit
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   modal: {
-    backgroundColor: '#f9fafb',
+    backgroundColor: "#f9fafb",
     borderRadius: 16,
     padding: 24,
-    width: '100%',
+    width: "100%",
     maxWidth: 400,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
     shadowRadius: 8,
@@ -181,36 +194,36 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#222',
+    color: "#222",
     marginBottom: 4,
     marginLeft: 2,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 8,
     padding: 12,
     marginBottom: 18,
     fontSize: 16,
-    backgroundColor: '#fff',
-    color: '#222',
+    backgroundColor: "#fff",
+    color: "#222",
   },
   descriptionInput: {
     minHeight: 80,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   dateInput: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 8,
     padding: 12,
     marginBottom: 15,
-    backgroundColor: '#f7f7f7',
-    justifyContent: 'center',
+    backgroundColor: "#f7f7f7",
+    justifyContent: "center",
   },
   priorityContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 15,
     gap: 10,
   },
@@ -219,24 +232,24 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
-    alignItems: 'center',
+    borderColor: "#ddd",
+    alignItems: "center",
   },
   priorityButtonActive: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
+    backgroundColor: "#007AFF",
+    borderColor: "#007AFF",
   },
   priorityText: {
     fontSize: 14,
-    color: '#666',
-    textTransform: 'capitalize',
+    color: "#666",
+    textTransform: "capitalize",
   },
   priorityTextActive: {
-    color: 'white',
-    fontWeight: '600',
+    color: "white",
+    fontWeight: "600",
   },
   buttonContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 10,
   },
   cancelButton: {
@@ -244,30 +257,30 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
-    alignItems: 'center',
-    backgroundColor: '#f2f2f2',
+    borderColor: "#ddd",
+    alignItems: "center",
+    backgroundColor: "#f2f2f2",
   },
   cancelButtonText: {
     fontSize: 16,
-    color: '#666',
-    fontWeight: '600',
+    color: "#666",
+    fontWeight: "600",
   },
   saveButton: {
     flex: 1,
     padding: 15,
     borderRadius: 8,
-    backgroundColor: '#22223b',
-    alignItems: 'center',
-    shadowColor: '#22223b',
+    backgroundColor: "#22223b",
+    alignItems: "center",
+    shadowColor: "#22223b",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 4,
   },
   saveButtonText: {
     fontSize: 16,
-    color: 'white',
-    fontWeight: '700',
+    color: "white",
+    fontWeight: "700",
     letterSpacing: 0.5,
   },
 });

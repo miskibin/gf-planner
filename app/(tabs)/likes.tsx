@@ -2,13 +2,13 @@ import React from "react";
 import { SafeAreaView, StyleSheet } from "react-native";
 import ListView from "../../components/ListView";
 
-export default function EventsScreen() {
+export default function LikesScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ListView
-        storageKey="events"
-        type="events"
-        emptyMessage="No events yet. Add your first event!"
+        storageKey="likes"
+        type="likes"
+        emptyMessage="No likes recorded yet. Add things she enjoys!"
       />
     </SafeAreaView>
   );

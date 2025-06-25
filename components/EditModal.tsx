@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Modal,
   View,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  BackHandler,
 } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { Item } from '../types';
@@ -25,6 +26,28 @@ export default function EditModal({ visible, onClose, onSave, item, type }: Edit
   const [priority, setPriority] = useState<'high' | 'medium' | 'low'>(item?.priority || 'medium');
   const [description, setDescription] = useState(item?.description || '');
   const [datePickerVisible, setDatePickerVisible] = useState(false);
+
+  const handleClose = useCallback(() => {
+    setTitle(item?.title || '');
+    setDate(item?.date || '');
+    setPriority(item?.priority || 'medium');
+    setDescription(item?.description || '');
+    onClose();
+  }, [item?.title, item?.date, item?.priority, item?.description, onClose]);
+
+  // Handle Android back button
+  useEffect(() => {
+    if (visible) {
+      const backAction = () => {
+        handleClose();
+        return true; // Prevent default behavior
+      };
+
+      const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
+      return () => backHandler.remove();
+    }
+  }, [visible, handleClose]);
 
   const handleSave = () => {
     if (!title.trim()) {
@@ -47,14 +70,6 @@ export default function EditModal({ visible, onClose, onSave, item, type }: Edit
 
     onSave(itemData);
     handleClose();
-  };
-
-  const handleClose = () => {
-    setTitle(item?.title || '');
-    setDate(item?.date || '');
-    setPriority(item?.priority || 'medium');
-    setDescription(item?.description || '');
-    onClose();
   };
 
   const handleDateConfirm = (selectedDate: Date) => {

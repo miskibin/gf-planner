@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "gf-app",
-    "slug": "gf-app",
+    "slug": "gf-planner",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -44,6 +44,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "61717696-029b-4006-aa8c-1dabdc87b015"
+      }
+    },
+    "owner": "miskibin"
   }
 }

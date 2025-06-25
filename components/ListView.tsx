@@ -265,9 +265,11 @@ const styles = StyleSheet.create({
     elevation: 3,
     borderWidth: 1,
     borderColor: '#e6e6e6',
+    position: 'relative',
   },
   itemContent: {
     padding: 18,
+    paddingRight: 50, // Make space for delete button
   },
   itemHeader: {
     flexDirection: 'row',
@@ -283,7 +285,11 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   deleteButton: {
-    padding: 2,
+    position: 'absolute',
+    top: 18,
+    right: 18,
+    padding: 8,
+    zIndex: 10,
   },
   itemDate: {
     fontSize: 14,

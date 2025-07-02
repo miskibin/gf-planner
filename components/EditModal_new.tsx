@@ -43,7 +43,9 @@ export default function EditModal({
   const [priority, setPriority] = useState<"high" | "medium" | "low">(
     item?.priority || "medium"
   );
-  const [description, setDescription] = useState(item?.description || "");
+  const [description, setDescription] = useState(
+    item?.description || reminder?.description || ""
+  );
   const [datePickerVisible, setDatePickerVisible] = useState(false);
 
   // Reminder-specific state
@@ -58,9 +60,6 @@ export default function EditModal({
   );
   const [selectedIcon, setSelectedIcon] = useState(
     reminder?.icon || "heart-outline"
-  );
-  const [reminderHour, setReminderHour] = useState(
-    reminder?.reminderHour || 8
   );
 
   const iconOptions = [
@@ -82,12 +81,11 @@ export default function EditModal({
     setTitle(item?.title || reminder?.title || "");
     setDate(item?.date || "");
     setPriority(item?.priority || "medium");
-    setDescription(item?.description || "");
+    setDescription(item?.description || reminder?.description || "");
     setFrequency(reminder?.frequency || "daily");
     setCustomDays(reminder?.customDays?.toString() || "1");
     setDisplayType(reminder?.displayType || "text");
     setSelectedIcon(reminder?.icon || "heart-outline");
-    setReminderHour(reminder?.reminderHour || 8);
     onClose();
   }, [item, reminder, onClose]);
 
@@ -109,22 +107,9 @@ export default function EditModal({
   }, [visible, handleClose]);
 
   const handleSave = async () => {
-    // For reminders, allow either title OR icon (or both)
-    if (type === "reminder") {
-      if (!title.trim() && displayType !== "icon") {
-        Alert.alert("Error", "Title is required when not using icon display");
-        return;
-      }
-      if (displayType === "icon" && !selectedIcon) {
-        Alert.alert("Error", "Please select an icon");
-        return;
-      }
-    } else {
-      // For other types, title is still required
-      if (!title.trim()) {
-        Alert.alert("Error", "Title is required");
-        return;
-      }
+    if (!title.trim()) {
+      Alert.alert("Error", "Title is required");
+      return;
     }
 
     try {
@@ -137,16 +122,16 @@ export default function EditModal({
           | "snoozeCount"
           | "discardedCount"
         > = {
-          title: title.trim() || undefined,
+          title: title.trim(),
+          description: description.trim() || undefined,
           frequency,
           customDays:
             frequency === "custom" ? parseInt(customDays) || 1 : undefined,
           displayType,
           icon: displayType === "icon" ? selectedIcon : undefined,
-          reminderHour,
           nextReminder: getNextReminderDate(
             frequency,
-            reminderHour,
+            8, // Default hour
             frequency === "custom" ? parseInt(customDays) || 1 : undefined
           ),
           status: "active",
@@ -180,7 +165,7 @@ export default function EditModal({
 
       onSave();
       handleClose();
-    } catch {
+    } catch (error) {
       Alert.alert("Error", "Failed to save. Please try again.");
     }
   };
@@ -204,37 +189,17 @@ export default function EditModal({
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent
-      onRequestClose={handleClose}
-    >
-      <TouchableOpacity
-        style={styles.overlay}
-        activeOpacity={1}
-        onPress={handleClose}
-      >
-        <TouchableOpacity
-          style={styles.modal}
-          activeOpacity={1}
-          onPress={(e) => e.stopPropagation()}
-        >
-          <View style={styles.dragIndicator} />
-
-          <ScrollView
-            style={styles.modalContent}
-            showsVerticalScrollIndicator={false}
-          >
-            <Text style={styles.label}>
-              {type === "reminder" ? "Title (optional if using icon)" : "Title"}
-            </Text>
+    <Modal visible={visible} animationType="slide" transparent>
+      <View style={styles.overlay}>
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          <View style={styles.modal}>
+            <Text style={styles.label}>Title</Text>
             <TextInput
               style={styles.input}
-              placeholder={type === "reminder" ? "Title (optional)" : "Title"}
+              placeholder="Title"
               value={title}
               onChangeText={setTitle}
-              autoFocus={type !== "reminder"}
+              autoFocus
             />
 
             {type === "events" && (
@@ -324,39 +289,6 @@ export default function EditModal({
                   </>
                 )}
 
-                <Text style={styles.label}>Reminder Time</Text>
-                <View style={styles.timeContainer}>
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    style={styles.timeScrollView}
-                  >
-                    {Array.from({ length: 12 }, (_, i) => i * 2).map((hour) => {
-                      const timeLabel = `${hour.toString().padStart(2, '0')}:00`;
-                      
-                      return (
-                        <TouchableOpacity
-                          key={hour}
-                          style={[
-                            styles.timeButton,
-                            reminderHour === hour && styles.timeButtonActive,
-                          ]}
-                          onPress={() => setReminderHour(hour)}
-                        >
-                          <Text
-                            style={[
-                              styles.timeText,
-                              reminderHour === hour && styles.timeTextActive,
-                            ]}
-                          >
-                            {timeLabel}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </ScrollView>
-                </View>
-
                 <Text style={styles.label}>Display Type</Text>
                 <View style={styles.displayTypeContainer}>
                   <TouchableOpacity
@@ -422,19 +354,15 @@ export default function EditModal({
               </>
             )}
 
-            {type !== "reminder" && (
-              <>
-                <Text style={styles.label}>Description</Text>
-                <TextInput
-                  style={[styles.input, styles.descriptionInput]}
-                  placeholder="Description (optional)"
-                  value={description}
-                  onChangeText={setDescription}
-                  multiline
-                  numberOfLines={3}
-                />
-              </>
-            )}
+            <Text style={styles.label}>Description</Text>
+            <TextInput
+              style={[styles.input, styles.descriptionInput]}
+              placeholder="Description (optional)"
+              value={description}
+              onChangeText={setDescription}
+              multiline
+              numberOfLines={3}
+            />
 
             <View style={styles.buttonContainer}>
               <TouchableOpacity
@@ -447,9 +375,9 @@ export default function EditModal({
                 <Text style={styles.saveButtonText}>Save</Text>
               </TouchableOpacity>
             </View>
-          </ScrollView>
-        </TouchableOpacity>
-      </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </View>
     </Modal>
   );
 }
@@ -458,74 +386,66 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-end",
+    justifyContent: "center",
     alignItems: "center",
+  },
+  scrollContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+    minHeight: "100%",
   },
   modal: {
     backgroundColor: "#f9fafb",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderRadius: 16,
+    padding: 24,
     width: "100%",
-    maxHeight: "90%",
+    maxWidth: 400,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  dragIndicator: {
-    width: 40,
-    height: 4,
-    backgroundColor: "#ccc",
-    borderRadius: 2,
-    alignSelf: "center",
-    marginTop: 12,
-    marginBottom: 20,
-  },
-  modalContent: {
-    paddingHorizontal: 28,
-    paddingBottom: 28,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
   },
   label: {
-    fontSize: 15,
+    fontSize: 14,
     color: "#222",
-    marginBottom: 6,
-    marginTop: 4,
+    marginBottom: 4,
     marginLeft: 2,
     fontWeight: "600",
   },
   input: {
     borderWidth: 1,
     borderColor: "#ddd",
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 20,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 18,
     fontSize: 16,
     backgroundColor: "#fff",
     color: "#222",
   },
   descriptionInput: {
-    minHeight: 90,
+    minHeight: 80,
     textAlignVertical: "top",
   },
   dateInput: {
     borderWidth: 1,
     borderColor: "#ddd",
-    borderRadius: 10,
-    padding: 14,
+    borderRadius: 8,
+    padding: 12,
     marginBottom: 15,
     backgroundColor: "#f7f7f7",
     justifyContent: "center",
   },
   priorityContainer: {
     flexDirection: "row",
-    marginBottom: 20,
-    gap: 12,
+    marginBottom: 15,
+    gap: 10,
   },
   priorityButton: {
     flex: 1,
-    padding: 12,
-    borderRadius: 10,
+    padding: 10,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: "#ddd",
     alignItems: "center",
@@ -545,13 +465,13 @@ const styles = StyleSheet.create({
   },
   frequencyContainer: {
     flexDirection: "row",
-    marginBottom: 20,
-    gap: 10,
+    marginBottom: 15,
+    gap: 8,
   },
   frequencyButton: {
     flex: 1,
-    padding: 12,
-    borderRadius: 10,
+    padding: 10,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: "#ddd",
     alignItems: "center",
@@ -572,13 +492,13 @@ const styles = StyleSheet.create({
   },
   displayTypeContainer: {
     flexDirection: "row",
-    marginBottom: 20,
-    gap: 12,
+    marginBottom: 15,
+    gap: 10,
   },
   displayTypeButton: {
     flex: 1,
-    padding: 12,
-    borderRadius: 10,
+    padding: 10,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: "#ddd",
     alignItems: "center",
@@ -600,14 +520,13 @@ const styles = StyleSheet.create({
   iconContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 12,
-    marginBottom: 20,
-    justifyContent: "center",
+    gap: 10,
+    marginBottom: 15,
   },
   iconButton: {
-    width: 55,
-    height: 55,
-    borderRadius: 12,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     borderWidth: 1,
     borderColor: "#ddd",
     justifyContent: "center",
@@ -618,46 +537,14 @@ const styles = StyleSheet.create({
     borderColor: "#007AFF",
     backgroundColor: "#F0F8FF",
   },
-  timeContainer: {
-    marginBottom: 20,
-  },
-  timeScrollView: {
-    maxHeight: 60,
-  },
-  timeButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginRight: 6,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-    minWidth: 50,
-  },
-  timeButtonActive: {
-    backgroundColor: "#007AFF",
-    borderColor: "#007AFF",
-  },
-  timeText: {
-    fontSize: 12,
-    color: "#666",
-    fontWeight: "500",
-  },
-  timeTextActive: {
-    color: "white",
-    fontWeight: "600",
-  },
   buttonContainer: {
     flexDirection: "row",
-    gap: 12,
-    marginTop: 8,
+    gap: 10,
   },
   cancelButton: {
     flex: 1,
-    padding: 16,
-    borderRadius: 12,
+    padding: 15,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: "#ddd",
     alignItems: "center",
@@ -670,14 +557,14 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     flex: 1,
-    padding: 16,
-    borderRadius: 12,
+    padding: 15,
+    borderRadius: 8,
     backgroundColor: "#22223b",
     alignItems: "center",
     shadowColor: "#22223b",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
   },
   saveButtonText: {
     fontSize: 16,
